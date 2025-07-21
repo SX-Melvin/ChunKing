@@ -11,9 +11,9 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 		{'fileName',-1,'the original file name',false},
 	 	{'guid',-1,'indetifier for each chunks',false}
 	}
-
+	
+	// Linear / Synchronous Chunk
 	public function Assoc ActionChunking(Object	prgCtx, Record	request)
-		string pathForChunKing = "D:\Apps\Opentext\Upload\ChunKing"
 		Assoc   returnData = Assoc.CreateAssoc()
 		Assoc   retVal = Assoc.CreateAssoc()
 		
@@ -22,8 +22,13 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 		retVal.data = returnData
 		retVal.statusCode = 200
 		
-		string guidPath = Str.Format("%1\%2\", pathForChunKing, request.guid)
+		// Where We Hold The Chunk Files
+		string guidPath = Str.Format("%1\%2\", $ChunKing.Common.ChunkDir, request.guid)
+		
+		// Where We Hold This Request's Chunk File
 		string chunkFilePath = Str.Format("%1%2", guidPath, request.chunkFile_filename)
+		
+		// Where We Hold The Actual File (We Use This File To Combine All The Chunks Later)
 		string actualFilePath = Str.Format("%1%2", guidPath, request.fileName)
 		
 		// Create The Folder If Not Exist
@@ -41,26 +46,36 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 			File.Create(chunkFilePath)
 		end
 		
+		// Fill The Chunk Content
 		$ChunKing.Utils.ReplaceContentToChunk(chunkFilePath, request.chunkFile)
 		
+		// Is This The Last Chunk?
 		if(request.isFinal == "true")
 			string item
+			
+			// Open The Actual File
 			File targetFile = File.Open( actualFilePath, File.WriteBinMode )
 			
+			// We Will Combine All The Chunks, Loop All Files Inside The Folder
 			for item in File.FileList(guidPath)
 
 				// Is This .part File?
 				if(IsDefined(Str.LocateI($ChunKing.Utils.GetFileExtension(item), "part")))
-					// If Yes Then Proceed To Append All The Chunks Into The Actual File
+					
+					// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
 					$ChunKing.Utils.AppendContentToChunk(targetFile, item)
 					
-					// Delete The Chunk After Appending Then Content
+					// Delete The Chunk File After Appending The Content
 					File.Delete(item)
+					
 				end
 				
 			end
 			
+			// Save The Actual File
 			File.Close( targetFile ) 
+			
+			// TODO: Do Something After Combining All The Chunks, Maybe Moving The File To Somewhere...
 		end
 		
 		return retVal

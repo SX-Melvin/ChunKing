@@ -8,7 +8,7 @@ public Object Utils inherits CHUNKING::ChunKingRoot
 		File contentFile = File.Open( contentToAddPath, File.ReadBinMode )
 		
 		if ( !IsError( contentFile ) )
-	        File.WriteBytes(targetFile, File.ReadBytes( contentFile, 10485760 ))
+	        File.WriteBytes(targetFile, File.ReadBytes( contentFile, $ChunKing.Common.ChunkSize ))
 		    File.Close( contentFile ) 
 		end
 
@@ -20,7 +20,7 @@ public Object Utils inherits CHUNKING::ChunKingRoot
 		File contentFile = File.Open( contentToAddPath, File.ReadBinMode )
 		
 		if ( !IsError( contentFile ) )
-			File.WriteBytes(targetFile, File.ReadBytes( contentFile, 10485760 ))
+			File.WriteBytes(targetFile, File.ReadBytes( contentFile, $ChunKing.Common.ChunkSize ))
 			File.Close( contentFile )
 		end
 	end
