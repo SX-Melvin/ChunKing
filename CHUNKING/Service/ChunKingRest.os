@@ -55,33 +55,22 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 		// Fill The Chunk Content
 		$ChunKing.Utils.ReplaceContentToChunk(chunkFilePath, request.chunkFile)
 		
-		// TODO: Start Combining From .part1
-		// TODO: Create .progress file
-		
 		// Check If Chunk Files Greater Than Combine Count
-		if(Length(File.FileList(guidPath)) > $ChunKing.Common.ChunkCombineCount + 1)
-			
-			// If Yes Then We Will Combine Some Chunk File By Ascending
-			File targetFile = File.Open( actualFilePath, File.WriteBinMode )
+		if(Length($chunking.Utils.GetChunkFiles(guidPath)) >= $ChunKing.Common.ChunkCombineCount)
 			
 			// We Will Combine All The Chunks, Loop All Files Inside The Folder
 			for item in $ChunKing.Utils.TakeOrderedChunks(guidPath)
 
-				// Is This .part File?
-				if(IsDefined(Str.LocateI($ChunKing.Utils.GetFileExtension(item), "part")))
-					
-					// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
-					$ChunKing.Utils.AppendContentToChunk(targetFile, item)
-					
-					// Delete The Chunk File After Appending The Content
-					File.Delete(item)
-					
-				end
+				// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
+				$ChunKing.Utils.AddContentToChunk(actualFilePath, item)
+				
+				// Delete The Chunk File After Appending The Content
+				File.Delete(item)
+				
+				$ChunKing.ProgressLog.WriteProgressLog(guidPath, item[Length(item)])
 				
 			end
-			
-			// Save The Actual File
-			File.Close( targetFile ) 
+
 		end
 		
 		return retVal
@@ -132,18 +121,13 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 			File targetFile = File.Open( actualFilePath, File.WriteBinMode )
 			
 			// We Will Combine All The Chunks, Loop All Files Inside The Folder
-			for item in File.FileList(guidPath)
-
-				// Is This .part File?
-				if(IsDefined(Str.LocateI($ChunKing.Utils.GetFileExtension(item), "part")))
-					
-					// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
-					$ChunKing.Utils.AppendContentToChunk(targetFile, item)
-					
-					// Delete The Chunk File After Appending The Content
-					File.Delete(item)
-					
-				end
+			for item in $chunking.Utils.GetChunkFiles(guidPath)
+				
+				// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
+				$ChunKing.Utils.AppendContentToChunk(targetFile, item)
+				
+				// Delete The Chunk File After Appending The Content
+				File.Delete(item)
 				
 			end
 			
