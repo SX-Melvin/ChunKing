@@ -19,6 +19,11 @@ public Object ProgressLog inherits CHUNKING::ChunKingRoot
 		return result
 	end
 	
+	// Delete Progress Log
+	public function void DeleteProgressLog(string dirPath)
+		File.Delete(dirPath + .ProgressLogName)
+	end
+	
 	// Write Progress Log
 	public function void WriteProgressLog(string dirPath, string value)
 		File progress = File.Open(dirPath + .ProgressLogName, File.WriteMode)

@@ -57,16 +57,6 @@ public Object Utils inherits CHUNKING::ChunKingRoot
 	end
 	
 	// Append Content From A File To Another
-	public function void AppendContentToChunk(File targetFile, string contentToAddPath)
-		File contentFile = File.Open( contentToAddPath, File.ReadBinMode )
-		
-		if ( !IsError( contentFile ) )
-			File.WriteBytes(targetFile, File.ReadBytes( contentFile, $ChunKing.Common.ChunkSize ))
-			File.Close( contentFile )
-		end
-	end
-	
-	// Append Content From A File To Another
 	public function void AddContentToChunk(string targetFile, string contentToAddPath)
 		File currentContentFile = File.Open( targetFile, File.ReadBinMode )
 		

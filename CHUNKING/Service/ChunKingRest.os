@@ -12,6 +12,11 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 	 	{'guid',-1,'indetifier for each chunks',false}
 	}
 	 	
+	public List fPrototypeActionChunkingParallelNotify = {
+	 	{'guid',-1,'indetifier for chunks',false},
+		{'fileName',-1,'the original file name',false}
+	}
+		
 	public List fPrototypeActionChunkingParallel = {
 		{'chunkFile',-1,'the chunk file',false},
 		{'fileName',-1,'the original file name',false},
@@ -76,10 +81,56 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 		return retVal
 	end
 	
+	// Notify That The Chunks Are Ready To Be Combined
+	public function Assoc ActionChunkingParallelNotify(Object	prgCtx, Record	request)
+		string item
+		Assoc   returnData = Assoc.CreateAssoc()
+		Assoc   retVal = Assoc.CreateAssoc()
+		retVal.ok = TRUE
+		returnData.message = "Done"
+		retVal.data = returnData
+		retVal.statusCode = 200
+		
+		// Where We Hold The Chunk Files
+		string guidPath = Str.Format("%1\%2\", $ChunKing.Common.ChunkDir, request.guid)
+		
+		// Where We Hold The Actual File (We Use This File To Combine All The Chunks Later)
+		string actualFilePath = Str.Format("%1%2", guidPath, request.fileName)
+		
+		// Create The Folder If Not Exist
+		if(!File.Exists(guidPath))
+			File.Create(guidPath)
+		end
+		
+		// Create The Actual File If Not Exist
+		if(!File.Exists(actualFilePath))
+			File.Create(actualFilePath)
+		end
+		
+		// We Will Combine All The Chunks, Loop All Files Inside The Folder
+		for item in $chunking.Utils.GetChunkFiles(guidPath)
+			
+			// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
+			$ChunKing.Utils.AddContentToChunk(actualFilePath, item)
+			
+			// Delete The Chunk File After Appending The Content
+			File.Delete(item)
+			
+		end
+		
+		// Delete The .progress File
+		$ChunKing.ProgressLog.DeleteProgressLog(guidPath)
+		
+		// TODO: Do Something After Combining All The Chunks, Maybe Moving The File To Somewhere...
+		
+		return retVal
+	end
+	
 	// Series / Linear / Synchronous Chunk
 	public function Assoc ActionChunking(Object	prgCtx, Record	request)
 		Assoc   returnData = Assoc.CreateAssoc()
 		Assoc   retVal = Assoc.CreateAssoc()
+		string item
 		
 		retVal.ok = TRUE
 		returnData.message = "Done"
@@ -115,26 +166,20 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 		
 		// Is This The Last Chunk?
 		if(request.isFinal == "true")
-			string item
-			
-			// Open The Actual File
-			File targetFile = File.Open( actualFilePath, File.WriteBinMode )
 			
 			// We Will Combine All The Chunks, Loop All Files Inside The Folder
 			for item in $chunking.Utils.GetChunkFiles(guidPath)
 				
 				// If Yes Then Proceed To Append All The Chunk Content Into The Actual File
-				$ChunKing.Utils.AppendContentToChunk(targetFile, item)
+				$ChunKing.Utils.AddContentToChunk(actualFilePath, item)
 				
 				// Delete The Chunk File After Appending The Content
 				File.Delete(item)
 				
-			end
-			
-			// Save The Actual File
-			File.Close( targetFile ) 
+			end 
 			
 			// TODO: Do Something After Combining All The Chunks, Maybe Moving The File To Somewhere...
+			
 		end
 		
 		return retVal
