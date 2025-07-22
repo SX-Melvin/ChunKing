@@ -55,6 +55,9 @@ public Object ChunKingRest inherits RESTIMPL::RestAPIs
 		// Fill The Chunk Content
 		$ChunKing.Utils.ReplaceContentToChunk(chunkFilePath, request.chunkFile)
 		
+		// TODO: Start Combining From .part1
+		// TODO: Create .progress file
+		
 		// Check If Chunk Files Greater Than Combine Count
 		if(Length(File.FileList(guidPath)) > $ChunKing.Common.ChunkCombineCount + 1)
 			
